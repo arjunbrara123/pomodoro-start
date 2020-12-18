@@ -10,10 +10,17 @@ WORK_MIN = 25
 SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
 reps = 0
+timer = None
 
 # ---------------------------- TIMER RESET ------------------------------- # 
 
-# ---------------------------- TIMER MECHANISM ------------------------------- # 
+def reset():
+    window.after_cancel(timer)
+    lblTitle.config(text="")
+    lblTick.config(text="")
+    canvas.itemconfig(timer_text, text="00:00")
+
+# ---------------------------- TIMER MECHANISM ------------------------------- #
 
 def start_timer():
     global reps
@@ -21,27 +28,33 @@ def start_timer():
     short_break_sec = 2 #SHORT_BREAK_MIN * 60
     long_break_sec = 4 #LONG_BREAK_MIN * 60
 
-    for i in range(8):
+    reps += 1
+    print(f"reps={reps}")
 
-        reps += 1
-        print(f"i={i}, reps={reps}")
+    tick_count = int(reps/2)
 
-        if reps % 2 == 1:
-            count_down(work_sec)
-        elif reps % 8 == 0:
-            count_down(long_break_sec)
-        else:
-            count_down(short_break_sec)
+    if reps % 2 == 1:
+        lblTitle.config(text="Work", fg=GREEN)
+        count_down(work_sec)
+    elif reps % 8 == 0:
+        lblTick.config(text="✔" * tick_count)
+        lblTitle.config(text="Break", fg=RED)
+        count_down(long_break_sec)
+    else:
+        lblTick.config(text="✔" * tick_count)
+        lblTitle.config(text="Break", fg=PINK)
+        count_down(short_break_sec)
 
 # ---------------------------- COUNTDOWN MECHANISM ------------------------------- # 
 def count_down(count):
-
+    global timer
     count_min = math.floor(count/60)
     count_sec = count % 60
     canvas.itemconfig(timer_text, text=f"{count_min:02d}:{count_sec:02d}")
     if count > 0:
-        window.after(1000, count_down, count-1)
-
+        timer = window.after(1000, count_down, count-1)
+    elif count == 0:
+        start_timer()
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -61,10 +74,10 @@ lblTitle.grid(column=1, row=0)
 
 btnStart = Button(text="Start", command=start_timer)
 btnStart.grid(column=0, row=2)
-btnReset = Button(text="Reset")
+btnReset = Button(text="Reset", command=reset)
 btnReset.grid(column=2, row=2)
 
-lblTick = Label(text="✔", fg=GREEN, bg=YELLOW, font=(FONT_NAME, 24, "bold"))
+lblTick = Label(text="", fg=GREEN, bg=YELLOW, font=(FONT_NAME, 24, "bold"))
 lblTick.grid(column=1, row=3)
 
 window.mainloop()
